@@ -244,6 +244,7 @@ func originRequiresProxy(staticHost string, cfg OriginRequestConfig) bool {
 
 // statusCode is an OriginService that just responds with a given HTTP status.
 // Typical use-case is "user wants the catch-all rule to just respond 404".
+// Additionally this can proide a 301/302 redirect
 type statusCode struct {
 	resp *http.Response
 }
@@ -254,6 +255,16 @@ func newStatusCode(status int) statusCode {
 		Status:     fmt.Sprintf("%d %s", status, http.StatusText(status)),
 		Body:       new(NopReadCloser),
 	}
+	return statusCode{resp: resp}
+}
+
+func newRedirect(status int, location string) statusCode {
+	resp := &http.Response{
+		StatusCode: status,
+		Status:     fmt.Sprintf("%d %s", status, http.StatusText(status)),
+		Body:       new(NopReadCloser),
+	}
+	resp.Header.Set("Location", location)
 	return statusCode{resp: resp}
 }
 
